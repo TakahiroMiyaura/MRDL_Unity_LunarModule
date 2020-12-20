@@ -10,6 +10,7 @@ using HUX.Utility;
 using UnityEngine.VR;
 using HUX.Receivers;
 using HUX.Focus;
+using UnityEngine.XR;
 
 namespace HUX
 {
@@ -241,7 +242,7 @@ namespace HUX
             switch (CurrentDevice)
             {
                 case DeviceTypeEnum.Auto:
-                switch (VRSettings.loadedDeviceName)
+                switch (XRSettings.loadedDeviceName)
                 {
                     case "Oculus":
                     m_deviceFOV = OCULUS_FOV;
@@ -307,9 +308,9 @@ namespace HUX
 #if UNITY_EDITOR || !UNITY_WSA
                 if (SetVeilFOVOnStartInEditor)
                 {
-                    if (VRDevice.isPresent)
+                    if (XRDevice.isPresent)
                     {
-                        while (!VRSettings.enabled)
+                        while (!XRSettings.enabled)
                         {
                             yield return null;
                         }

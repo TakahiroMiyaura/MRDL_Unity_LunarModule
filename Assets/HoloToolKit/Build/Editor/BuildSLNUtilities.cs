@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 namespace HoloToolkit.Unity
@@ -187,12 +188,13 @@ namespace HoloToolkit.Unity
                 }
             }
 
+#if !UNITY_2019_1_OR_NEWER
             var oldWSAGenerateReferenceProjects = EditorUserBuildSettings.wsaGenerateReferenceProjects;
             if (buildInfo.WSAGenerateReferenceProjects.HasValue)
             {
                 EditorUserBuildSettings.wsaGenerateReferenceProjects = buildInfo.WSAGenerateReferenceProjects.Value;
             }
-
+#endif
             var oldColorSpace = PlayerSettings.colorSpace;
             if (buildInfo.ColorSpace.HasValue)
             {
@@ -204,7 +206,7 @@ namespace HoloToolkit.Unity
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, buildInfo.BuildSymbols);
             }
 
-            string buildError = "Error";
+            BuildReport report = null;
             try
             {
                 // For the WSA player, Unity builds into a target directory.
@@ -216,20 +218,20 @@ namespace HoloToolkit.Unity
                 }
 
                 OnPreProcessBuild(buildInfo);
-                buildError = BuildPipeline.BuildPlayer(
+                report = BuildPipeline.BuildPlayer(
                     buildInfo.Scenes.ToArray(),
                     buildInfo.OutputDirectory,
                     buildInfo.BuildTarget,
                     buildInfo.BuildOptions);
 
-                if (buildError.StartsWith("Error"))
+                if (report.summary.result == BuildResult.Failed)
                 {
-                    throw new Exception(buildError);
+                    throw new Exception(CreateResultReport(report));
                 }
             }
             finally
             {
-                OnPostProcessBuild(buildInfo, buildError);
+                OnPostProcessBuild(buildInfo, CreateResultReport(report));
 
                 PlayerSettings.colorSpace = oldColorSpace;
                 PlayerSettings.SetScriptingDefineSymbolsForGroup(buildTargetGroup, oldBuildSymbols);
@@ -241,10 +243,19 @@ namespace HoloToolkit.Unity
                     EditorUserBuildSettings.wsaUWPBuildType = oldWSAUWPBuildType.Value;
                 }
 
+#if !UNITY_2019_1_OR_NEWER
                 EditorUserBuildSettings.wsaGenerateReferenceProjects = oldWSAGenerateReferenceProjects;
-
+#endif
                 EditorUserBuildSettings.SwitchActiveBuildTarget(oldBuildTarget);
             }
+        }
+
+        private static string CreateResultReport(BuildReport report)
+        {
+            if (report == null) return String.Empty;
+
+            return
+                $"Build {report.summary.result}. warnings:{report.summary.totalWarnings}, errors:{report.summary.totalErrors}, totalTime:{report.summary.totalTime}";
         }
 
         public static void ParseBuildCommandLine(ref BuildInfo buildInfo)

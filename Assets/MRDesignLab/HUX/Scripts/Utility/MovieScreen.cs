@@ -5,6 +5,7 @@
 using UnityEngine;
 using System;
 using System.Collections;
+using UnityEngine.Video;
 
 namespace HUX.Utility
 {
@@ -16,7 +17,7 @@ namespace HUX.Utility
 		public class MovieStateDatum
 		{
 #if !UNITY_ANDROID && !UNITY_WEBGL
-			public MovieTexture targetMovie;
+			public VideoPlayer targetMovie;
 #endif
 			public Texture targetTexture;
 			public bool LoopMovie = false;
@@ -45,9 +46,9 @@ namespace HUX.Utility
 				MovieStateDatum stateDatum = MovieStates[newState];
 				if (stateDatum.targetMovie != null)
 				{
-					mRenderer.material.SetTexture("_MainTex", stateDatum.targetMovie);
-					mRenderer.material.SetTexture("_AlphaTex", stateDatum.targetMovie);
-					stateDatum.targetMovie.loop = stateDatum.LoopMovie;
+					mRenderer.material.SetTexture("_MainTex", stateDatum.targetMovie.texture);
+					mRenderer.material.SetTexture("_AlphaTex", stateDatum.targetMovie.texture);
+					stateDatum.targetMovie.isLooping = true;
 
 					if (stateDatum.LoopCount > 0 && !stateDatum.LoopMovie)
 					{
@@ -88,7 +89,7 @@ namespace HUX.Utility
 			while (loopCount > 0)
 			{
 				stateDatum.targetMovie.Play();
-				yield return new WaitForSeconds(stateDatum.targetMovie.duration);
+				yield return new WaitForSeconds((float)stateDatum.targetMovie.clockTime);
 				loopCount--;
 			}
 #else

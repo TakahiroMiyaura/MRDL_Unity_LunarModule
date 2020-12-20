@@ -7,7 +7,8 @@ using System;
 using HUX.Utility;
 using UnityEngine.EventSystems;
 using HUX.Focus;
-using UnityEngine.VR.WSA.Input;
+using UnityEngine.XR.WSA.Input;
+
 
 namespace HUX.Interaction
 {
@@ -38,7 +39,7 @@ namespace HUX.Interaction
         /// </summary>
         public GestureRecognizer ActiveRecognizer { get; private set; }
 
-		public UnityEngine.VR.WSA.Input.InteractionManager ActiveInteractionManager { get; private set; }
+		public InteractionManager ActiveInteractionManager { get; private set; }
 
         /// <summary>
         /// is the user currently navigating.
@@ -115,21 +116,21 @@ namespace HUX.Interaction
             ActiveRecognizer.StartCapturingGestures();
             SetupEvents(true);
 
-			UnityEngine.VR.WSA.Input.InteractionManager.SourcePressed += InteractionManager_SourcePressedCallback;
-			UnityEngine.VR.WSA.Input.InteractionManager.SourceReleased += InteractionManager_SourceReleasedCallback;
+            UnityEngine.XR.WSA.Input.InteractionManager.InteractionSourcePressed += InteractionManager_SourcePressedCallback;
+            UnityEngine.XR.WSA.Input.InteractionManager.InteractionSourceReleased += InteractionManager_SourceReleasedCallback;
 
 			bLockFocus = true;
 		}
 
-		private void InteractionManager_SourcePressedCallback(InteractionSourceState state)
+		private void InteractionManager_SourcePressedCallback(InteractionSourcePressedEventArgs state)
 		{
-			AFocuser focuser = GetFocuserForSource(state.source.kind);
+			AFocuser focuser = GetFocuserForSource(state.state.source.kind);
 			OnPressedEvent(focuser);
 		}
 
-		private void InteractionManager_SourceReleasedCallback(InteractionSourceState state)
+		private void InteractionManager_SourceReleasedCallback(InteractionSourceReleasedEventArgs state)
 		{
-			AFocuser focuser = GetFocuserForSource(state.source.kind);
+			AFocuser focuser = GetFocuserForSource(state.state.source.kind);
 			OnReleasedEvent(focuser);
 		}
 
